@@ -1,0 +1,231 @@
+<?xml version="1.0"?>
+
+
+<typesystem package="PySide6QCustomPlot2">
+    <!-- 引入其他 Qt 的类型系统定义,generate="no" 不重复生成 -->
+    <primitive-type name="bool"/>
+    <primitive-type name="std::string"/>
+    <load-typesystem name="typesystem_core.xml" generate="no"/>
+    <load-typesystem name="typesystem_core_common.xml" generate="no"/>
+    <load-typesystem name="typesystem_widgets.xml" generate="no"/>
+    <load-typesystem name="typesystem_gui.xml" generate="no"/>
+
+    <!-- 排除 selectEvent, deselectEvent and selectTest functions. -->
+    <rejection class="*" function-name="selectTest"/>
+    <rejection class="*" function-name="selectEvent"/>
+    <rejection class="*" function-name="deselectEvent"/>
+
+    <!-- 排除私有成员变量 -->
+    <rejection class="^QCP.*$" field-name="^m.*$"/>
+    <rejection class="QCustomPlot" field-name="^m.*$"/>
+
+    <!--定义了 C++ 的 QCP 命名空间下要绑定的枚举-->
+    <namespace-type name="QCP">
+        <enum-type name="ResolutionUnit"/>
+        <enum-type name="ExportPen"/>
+        <enum-type name="SignDomain"/>
+        <enum-type name="MarginSide" flags="MarginSides"/>
+        <enum-type name="AntialiasedElement" flags="AntialiasedElements"/>
+        <enum-type name="PlottingHint" flags="PlottingHints"/>
+        <enum-type name="Interaction" flags="Interactions"/>
+        <enum-type name="SelectionRectMode"/>
+        <enum-type name="SelectionType"/>
+    </namespace-type>
+
+    <smart-pointer-type name="QSharedPointer"
+                        type="shared"
+                        getter="data"
+                        reset-method="reset"
+                        instantiations="
+                            QCPAxisTicker=QCPAxisTickerPtr,
+                            QCPGraphDataContainer=QCPGraphDataContainerPtr,
+                            QCPCurveDataContainer=QCPCurveDataContainerPtr
+                        "
+    />
+
+    <value-type name="KeyValues"/>
+
+    <object-type name="QCustomPlot">
+        <enum-type name="LayerInsertMode"/>
+        <enum-type name="RefreshPriority"/>
+
+        <template name="fix_args,QVariant*">
+            QVariant selectionDetails_;
+            %RETURN_TYPE retval_ = %CPPSELF.%FUNCTION_NAME(%1, %2, &amp;selectionDetails_);
+            %PYARG_0 = PyTuple_New(2);
+            PyTuple_SET_ITEM(%PYARG_0, 0, %CONVERTTOPYTHON[%RETURN_TYPE](retval_));
+            PyTuple_SET_ITEM(%PYARG_0, 1, %CONVERTTOPYTHON[QVariant](selectionDetails_));
+        </template>
+
+        <modify-function signature="layerableAt(QPointF,bool,QVariant*)const">
+            <modify-argument index="3">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[PySide6QCustomPlot2.QCPLayerable, QVariant]">
+                <replace-type modified-type="(QCPLayerable*, QVariant selectionDetails)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning">
+                <insert-template name="fix_args,QVariant*"/>
+            </inject-code>
+        </modify-function>
+
+        <modify-function signature="plottableAt(const QPointF&amp;,bool,int*)const" access="public">
+            <modify-argument index="3">
+                <remove-argument/>
+                <replace-default-expression with="0"/>
+            </modify-argument>
+        </modify-function>
+
+    </object-type>
+
+    <object-type name="QCPPainter">
+        <enum-type name="PainterMode"/>
+    </object-type>
+
+    <object-type name="QCPGraphData"/>
+
+    <object-type name="QCPGraphDataContainer">
+    </object-type>
+    <object-type name="QCPCurveDataContainer">
+    </object-type>
+
+    <object-type name="QCPGraph">
+        <enum-type name="LineStyle"/>
+
+    </object-type>
+
+    <value-type name="QCPDataRange">
+    </value-type>
+
+    <interface-type name="QCPPlottableInterface1D">
+    </interface-type>
+
+    <object-type name="QCPAbstractPlottable">
+    </object-type>
+
+    <object-type name="QCPAbstractPlottable1D" generate='no'>
+    </object-type>
+
+    <object-type name="QCPAxis">
+        <enum-type name="AxisType" flags="AxisTypes"/>
+        <enum-type name="LabelSide"/>
+        <enum-type name="ScaleType"/>
+        <enum-type name="SelectablePart" flags="SelectableParts"/>
+
+    </object-type>
+
+
+    <object-type name="QCPAxisTicker">
+        <enum-type name="TickStepStrategy"/>
+
+        <template name="fix_args,double*">
+            double magnitude_;
+            %RETURN_TYPE retval_ = %CPPSELF.%FUNCTION_NAME(%1, &amp;magnitude_);
+            %PYARG_0 = PyTuple_New(2);
+            PyTuple_SET_ITEM(%PYARG_0, 0, %CONVERTTOPYTHON[%RETURN_TYPE](retval_));
+            PyTuple_SET_ITEM(%PYARG_0, 1, %CONVERTTOPYTHON[double](magnitude_));
+        </template>
+
+        <modify-function signature="getMantissa(double,double*)const">
+            <modify-argument index="2">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[float, float]">
+                <replace-type modified-type="(float, float magnitude)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning">
+                <insert-template name="fix_args,double*"/>
+            </inject-code>
+        </modify-function>
+
+    </object-type>
+
+    <object-type name="QCPAbstractItem"/>
+    <object-type name="QCPItemAnchor"/>
+    <object-type name="QCPAxisTickerLog"/>
+    <object-type name="QCPItemTracer">
+        <enum-type name="TracerStyle"/>
+    </object-type>
+    <object-type name="QCPItemPosition">
+        <enum-type name="PositionType"/>
+    </object-type>
+
+    <object-type name="QCPItemText">
+        <enum-type name="AnchorIndex"/>
+    </object-type>
+
+    <value-type name="QCPCurveData">
+    </value-type>
+
+    <object-type name="QCPCurve">
+        <enum-type name="LineStyle"/>
+
+    </object-type>
+
+    <object-type name="QCPLayerable"/>
+    <object-type name="QCPLayout"/>
+
+    <object-type name="QCPLayer">
+        <enum-type name="LayerMode"/>
+    </object-type>
+
+    <object-type name="QCPSelectionRect">
+
+    </object-type>
+    <object-type name="QCPLayoutElement">
+        <enum-type name="UpdatePhase"/>
+        <enum-type name="SizeConstraintRect"/>
+    </object-type>
+
+    <object-type name="QCPLayoutGrid">
+        <enum-type name="FillOrder"/>
+    </object-type>
+
+    <object-type name="QCPLayoutInset">
+        <enum-type name="InsetPlacement"/>
+    </object-type>
+    <object-type name="QCPAxisRect"/>
+
+    <object-type name="QCPLegend">
+        <enum-type name="SelectablePart" flags="SelectableParts"/>
+    </object-type>
+
+    <value-type name="QCPRange"/>
+    <object-type name="QCPAxisPainterPrivate">
+
+    </object-type>
+    <object-type name="QCPSelectionDecorator"/>
+
+    <value-type name="QCPDataSelection"/>
+
+    <object-type name="QCPDataContainer" generate='no'>
+    </object-type>
+    <value-type name="QCPVector2D">
+    </value-type>
+
+    <object-type name="QCPGrid"/>
+
+    <object-type name="QCPLineEnding">
+        <enum-type name="EndingStyle"/>
+    </object-type>
+
+    <object-type name="QCPScatterStyle">
+        <enum-type name="ScatterShape"/>
+        <enum-type name="ScatterProperty" flags="ScatterProperties"/>
+    </object-type>
+
+    <object-type name="QCPItemStraightLine">
+    </object-type>
+    <object-type name="QCPAxisTickerDateTime">
+        <enum-type name="DateStrategy"/>
+    </object-type>
+
+    <object-type name="QCPAbstractLegendItem">
+    </object-type>
+
+    <object-type name="QCPPlottableLegendItem">
+    </object-type>
+
+</typesystem>
